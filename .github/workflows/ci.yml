@@ -1,0 +1,62 @@
+name: Autonomous GST CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  backend-test:
+    name: Backend Tests & Build
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:7.0
+        ports:
+          - 27017:27017
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: backend/package.json
+
+      - name: Install backend dependencies
+        run: cd backend && npm ci
+
+      - name: Run Jest test suite
+        run: cd backend && npm test
+        env:
+          MONGODB_URI: mongodb://localhost:27017/test_autonomous_gst
+          JWT_SECRET: ci_test_secret_key_123
+
+      - name: Build TypeScript
+        run: cd backend && npm run build
+
+  frontend-build:
+    name: Frontend Build Verification
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package.json
+
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci
+
+      - name: Build Vite application
+        run: cd frontend && npm run build
