@@ -1,19 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { UserRole } from '../types';
-import { Sparkles, Shield, ArrowRight, Lock, Mail, Building, CheckCircle2 } from 'lucide-react';
+import { Sparkles, Shield, ArrowRight, Lock, Mail, CheckCircle2 } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
-  const { login, quickLogin, isLoading } = useAuth();
+  const { login, quickLogin, isLoading, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('finance@gstcopilot.io');
   const [password, setPassword] = useState('Password123!');
   const [error, setError] = useState('');
+
+  // If already authenticated, redirect to dashboard immediately
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     try {
       await login({ email, password });
+      navigate('/', { replace: true });
     } catch (err: any) {
       setError(err.response?.data?.message || 'Invalid credentials');
     }
@@ -23,6 +33,7 @@ export const LoginPage: React.FC = () => {
     setError('');
     try {
       await quickLogin(role);
+      navigate('/', { replace: true });
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed');
     }
@@ -91,7 +102,7 @@ export const LoginPage: React.FC = () => {
               disabled={isLoading}
               className="w-full py-2.5 px-4 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold transition-all shadow-md shadow-brand-950/40 flex items-center justify-center gap-1.5 disabled:opacity-50"
             >
-              <span>Sign In to Workspace</span>
+              <span>{isLoading ? 'Signing In...' : 'Sign In to Workspace'}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </form>

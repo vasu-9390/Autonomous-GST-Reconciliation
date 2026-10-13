@@ -60,13 +60,21 @@ const ProtectedLayout: React.FC = () => {
   );
 };
 
+const LoginRoute: React.FC = () => {
+  const { isAuthenticated, isLoading } = useAuth();
+  if (!isLoading && isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+  return <LoginPage />;
+};
+
 export const App: React.FC = () => {
   return (
     <AuthProvider>
       <NotificationProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/login" element={<LoginPage />} />
+            <Route path="/login" element={<LoginRoute />} />
             <Route path="/*" element={<ProtectedLayout />} />
           </Routes>
         </BrowserRouter>
